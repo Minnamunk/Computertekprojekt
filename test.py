@@ -14,6 +14,6 @@ def create_empty_file(folder_path, file_name):
 
 # Example usage:
 folder_path = 'C:/Users/idavi/Documents/Uni/2.semester/Computerteknologiprojekt1'
-file_name = 'Computerteknologiprojekt.txt'
+file_name = 'Computerteknologiprojekt1.txt'
 
 create_empty_file(folder_path, file_name)
