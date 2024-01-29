@@ -13,7 +13,7 @@ def create_empty_file(folder_path, file_name):
     print(f"Empty file '{file_name}' created in '{folder_path}'.")
 
 # Example usage:
-folder_path = '/path/to/your/folder'
-file_name = 'empty_file.txt'
+folder_path = 'C:/Users/idavi/Documents/Uni/2.semester/Computerteknologiprojekt1'
+file_name = 'Computerteknologiprojekt.txt'
 
 create_empty_file(folder_path, file_name)
