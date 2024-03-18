@@ -24,7 +24,7 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 
 LINEAR_VEL = 0.05
-STOP_DISTANCE = 0.05
+STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
 
@@ -91,28 +91,51 @@ class Obstacle():
                     time.sleep(1)
                     turtlebot_moving = False
 
-                    #turn
-                    twist.linear.x = 0.0
-                    twist.angular.z = 0.5
+                     # Determine direction to turn based on lidar data
+                    if lidar_distances.index(min_distance) < len(lidar_distances) / 2:
+                        # Turn left
+                        twist.linear.x = 0.0
+                        twist.angular.z = 0.5
+                        rospy.loginfo('Turning left')
+                        rospy.loginfo('length %d', len(lidar_distances))
+                    else:
+                        # Turn right
+                        twist.linear.x = 0.0
+                        twist.angular.z = -0.5
+                        rospy.loginfo('Turning right')
+                        rospy.loginfo('length %d', len(lidar_distances))
+
+                    # Publish twist message to make the turn
                     self._cmd_pub.publish(twist)
-                    turtlebot_moving = True
-                    rospy.loginfo('Turning 45 degrees')
-                    lidar_distances = self.get_scan()
-                    min_distance = min(lidar_distances)
                     time.sleep(1)
-                    if min_distance < SAFE_STOP_DISTANCE: #maybe turn again
-                        twist.linear.x = 0.0
-                        twist.angular.z = 0.0
-                        turtlebot_moving = False
-                        self._cmd_pub.publish(twist)
-                        twist.linear.x = 0.0
-                        twist.angular.z = -1.5
-                        self._cmd_pub.publish(twist)
-                        turtlebot_moving = True
-                        rospy.loginfo('Turning -90 degrees')
+                    twist.linear.x = 0.0
+                    twist.angular.z = 0.0
+                    self._cmd_pub.publish(twist)
 
+                    turtlebot_moving = True
+                    time.sleep(1)
 
-
+                    #turn
+                    #twist.linear.x = 0.0
+                    #twist.angular.z = 0.5
+                    #self._cmd_pub.publish(twist)
+                    #turtlebot_moving = True
+                    #rospy.loginfo('Turning clockwise')
+                    #lidar_distances = self.get_scan()
+                    #min_distance = min(lidar_distances)
+                    #time.sleep(1)
+                    #twist.linear.x = 0.0
+                    #twist.angular.z = 0.0
+                    #turtlebot_moving = False
+                    #self._cmd_pub.publish(twist)
+                    #if min_distance < SAFE_STOP_DISTANCE:
+                        #for i in range(3):
+                    #    twist.linear.x = 0.0
+                     #   twist.angular.z = -1.0
+                      #  self._cmd_pub.publish(twist)
+                       # turtlebot_moving = True
+                        #rospy.loginfo('Turning counter clockwise')
+                        #time.sleep(1)
             else:
                 twist.linear.x = LINEAR_VEL
                 twist.angular.z = 0.0
