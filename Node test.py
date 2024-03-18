@@ -24,7 +24,7 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 
 LINEAR_VEL = 0.05
-STOP_DISTANCE = 0.2
+STOP_DISTANCE = 0.1
 LIDAR_ERROR = 0.05
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
 
@@ -90,9 +90,20 @@ class Obstacle():
                     turtlebot_moving = True
                     time.sleep(1)
                     turtlebot_moving = False
+                    lidar_distances = self.get_scan()
+                    startdistance = min(lidar_distances)
 
-                     # Determine direction to turn based on lidar data
-                    if lidar_distances.index(min_distance) < len(lidar_distances) / 2:
+                    # Determine direction to turn based on lidar data
+                    # Turn right
+                    twist.linear.x = 0.0
+                    twist.angular.z = -0.1
+                    rospy.loginfo('looking right')
+                    self._cmd_pub.publish(twist)
+                    time.sleep(1)
+                    lidar_distances = self.get_scan()
+                    rightdistance = min(lidar_distances)
+
+                    if rightdistance < startdistance:
                         # Turn left
                         twist.linear.x = 0.0
                         twist.angular.z = 0.5
