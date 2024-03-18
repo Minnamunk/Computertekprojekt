@@ -106,13 +106,13 @@ class Obstacle():
                     if rightdistance < startdistance:
                         # Turn left
                         twist.linear.x = 0.0
-                        twist.angular.z = 0.5
+                        twist.angular.z = 0.75
                         rospy.loginfo('Turning left')
                         rospy.loginfo('length %d', len(lidar_distances))
                     else:
                         # Turn right
                         twist.linear.x = 0.0
-                        twist.angular.z = -0.5
+                        twist.angular.z = -0.75
                         rospy.loginfo('Turning right')
                         rospy.loginfo('length %d', len(lidar_distances))
 
