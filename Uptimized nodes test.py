@@ -85,6 +85,17 @@ class Obstacle():
             twist.linear.x = LINEAR_VEL*linear
             twist.angular.z = ANGULAR_VEL*angular
             self._cmd_pub.publish(twist)
+        
+        def direction():
+            lidar_distances = self.get_scan
+            left = [x for x in lidar_distances[:45] if x != 10]
+            right = [x for x in lidar_distances[45:] if x != 10]
+            if (sum(left)/len(left)<sum(right)/len(right)):
+                rospy.loginfo('turning right')
+                return -1   # turn right
+            else:
+                rospy.loginfo('turning left')
+                return 1    # turn left
 
         while not rospy.is_shutdown():
             lidar_distances = self.get_scan()
@@ -113,31 +124,33 @@ class Obstacle():
                     startdistance = min(lidar_distances)
 
                     # Determine direction to turn based on lidar data
-                    # Turn right
-                    updateVelocity(0.0, -0.1)
-                    # twist.linear.x = 0.0
-                    # twist.angular.z = -0.1
-                    rospy.loginfo('looking right')
-                    #self._cmd_pub.publish(twist)
-                    time.sleep(1)
-                    lidar_distances = self.get_scan()
-                    rightdistance = min(lidar_distances)
+                    updateVelocity(0.5, (0.1*direction()))
 
-                    if rightdistance < startdistance:
-                     # Determine direction to turn
-                        # Turn left
-                        updateVelocity(0.0, 0.75)
-                        # twist.linear.x = 0.0
-                        # twist.angular.z = 0.75
-                        rospy.loginfo('Turning left')
-                        rospy.loginfo('length %d', len(lidar_distances))
-                    else:
-                        # Turn right
-                        updateVelocity(0.0, -0.75)
-                        #twist.linear.x = 0.0
-                        #twist.angular.z = -0.75
-                        rospy.loginfo('Turning right')
-                        rospy.loginfo('length %d', len(lidar_distances))
+                    # # Turn right
+                    # updateVelocity(0.0, -0.1)
+                    # # twist.linear.x = 0.0
+                    # # twist.angular.z = -0.1
+                    # rospy.loginfo('looking right')
+                    # #self._cmd_pub.publish(twist)
+                    time.sleep(1)
+                    # lidar_distances = self.get_scan()
+                    # rightdistance = min(lidar_distances)
+
+                    # if rightdistance < startdistance:
+                    #  # Determine direction to turn
+                    #     # Turn left
+                    #     updateVelocity(0.0, 0.75)
+                    #     # twist.linear.x = 0.0
+                    #     # twist.angular.z = 0.75
+                    #     rospy.loginfo('Turning left')
+                    #     rospy.loginfo('length %d', len(lidar_distances))
+                    # else:
+                    #     # Turn right
+                    #     updateVelocity(0.0, -0.75)
+                    #     #twist.linear.x = 0.0
+                    #     #twist.angular.z = -0.75
+                    #     rospy.loginfo('Turning right')
+                    #     rospy.loginfo('length %d', len(lidar_distances))
 
                     # Publish twist message to make the turn
                     #self._cmd_pub.publish(twist)
