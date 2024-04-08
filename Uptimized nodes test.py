@@ -24,12 +24,22 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 
 LINEAR_VEL = 0.05
-ANGULAR_VEL = 0.05
+ANGULAR_VEL = 1
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
 
 class Obstacle():
+
+    # def laserScanMsgCallBack(msg):
+    #     scan_angle = [0, -45, 45]
+    #     for num in range(3):
+    #         if math.isinf(msg.ranges[scan_angle[num]]):
+    #             get_scan[num] = msg.range_max
+    #         else:
+    #             scan_data_[num] = msg.ranges[scan_angle[num]]
+
+
     def __init__(self):
         self._cmd_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
         self.start_time = rospy.Time.now()
@@ -42,7 +52,7 @@ class Obstacle():
         samples = len(scan.ranges)  # The number of samples is defined in
                                     # turtlebot3_<model>.gazebo.xacro file,
                                     # the default is 360.
-        samples_view = 1            # 1 <= samples_view <= samples
+        samples_view = 90            # 1 <= samples_view <= samples
 
         if samples_view > samples:
             samples_view = samples
@@ -51,7 +61,7 @@ class Obstacle():
             scan_filter.append(scan.ranges[0])
 
         else:
-            left_lidar_samples_ranges = -(samples_view//2 + samples_view % 2)
+            left_lidar_samples_ranges = -(samples_view//2) # removed + samples_view % 2
             right_lidar_samples_ranges = samples_view//2
 
             left_lidar_samples = scan.ranges[left_lidar_samples_ranges:]
@@ -65,11 +75,16 @@ class Obstacle():
                 scan_filter[i] = 0
 
         return scan_filter
-    
 
     def obstacle(self):
         twist = Twist()
         turtlebot_moving = True
+
+        def updateVelocity(linear, angular):
+            twist = Twist()
+            twist.linear.x = LINEAR_VEL*linear
+            twist.angular.z = ANGULAR_VEL*angular
+            self._cmd_pub.publish(twist)
 
         while not rospy.is_shutdown():
             lidar_distances = self.get_scan()
@@ -78,17 +93,19 @@ class Obstacle():
             rospy.loginfo('Minimum distance to obstacle: %f', min_distance)
             if min_distance < SAFE_STOP_DISTANCE:
                 if turtlebot_moving:
-                    twist.linear.x = 0.0
-                    twist.angular.z = 0.0
-                    self._cmd_pub.publish(twist)
+                    updateVelocity(0.0, 0.0)
+                    # twist.linear.x = 0.0  Used fuction instead
+                    # twist.angular.z = 0.0 Used function instead
+                    # self._cmd_pub.publish(twist)
                     turtlebot_moving = False
                     rospy.loginfo('Stop!')
                     time.sleep(1)
 
                     #back up
-                    twist.linear.x = -LINEAR_VEL
-                    twist.angular.z = 0.0
-                    self._cmd_pub.publish(twist)
+                    updateVelocity(-1.0, 0.0)
+                    # twist.linear.x = -LINEAR_VEL
+                    # twist.angular.z = 0.0
+                    # self._cmd_pub.publish(twist)
                     turtlebot_moving = True
                     time.sleep(1)
                     turtlebot_moving = False
@@ -97,10 +114,11 @@ class Obstacle():
 
                     # Determine direction to turn based on lidar data
                     # Turn right
-                    twist.linear.x = 0.0
-                    twist.angular.z = -0.1
+                    updateVelocity(0.0, -0.1)
+                    # twist.linear.x = 0.0
+                    # twist.angular.z = -0.1
                     rospy.loginfo('looking right')
-                    self._cmd_pub.publish(twist)
+                    #self._cmd_pub.publish(twist)
                     time.sleep(1)
                     lidar_distances = self.get_scan()
                     rightdistance = min(lidar_distances)
@@ -108,23 +126,26 @@ class Obstacle():
                     if rightdistance < startdistance:
                      # Determine direction to turn
                         # Turn left
-                        twist.linear.x = 0.0
-                        twist.angular.z = 0.75
+                        updateVelocity(0.0, 0.75)
+                        # twist.linear.x = 0.0
+                        # twist.angular.z = 0.75
                         rospy.loginfo('Turning left')
                         rospy.loginfo('length %d', len(lidar_distances))
                     else:
                         # Turn right
-                        twist.linear.x = 0.0
-                        twist.angular.z = -0.75
+                        updateVelocity(0.0, -0.75)
+                        #twist.linear.x = 0.0
+                        #twist.angular.z = -0.75
                         rospy.loginfo('Turning right')
                         rospy.loginfo('length %d', len(lidar_distances))
 
                     # Publish twist message to make the turn
-                    self._cmd_pub.publish(twist)
+                    #self._cmd_pub.publish(twist)
                     time.sleep(1)
-                    twist.linear.x = 0.0
-                    twist.angular.z = 0.0
-                    self._cmd_pub.publish(twist)
+                    updateVelocity(0.0, 0.0)
+                    #twist.linear.x = 0.0
+                    #twist.angular.z = 0.0
+                    #self._cmd_pub.publish(twist)
 
                     turtlebot_moving = True
                     time.sleep(1)
@@ -151,9 +172,10 @@ class Obstacle():
                         #rospy.loginfo('Turning counter clockwise')
                         #time.sleep(1)
             else:
-                twist.linear.x = LINEAR_VEL
-                twist.angular.z = 0.0
-                self._cmd_pub.publish(twist)
+                updateVelocity(1, 0.0)
+                #twist.linear.x = LINEAR_VEL
+                #twist.angular.z = 0.0
+                #self._cmd_pub.publish(twist)
                 turtlebot_moving = True
                 rospy.loginfo('Distance of the obstacle : %f', min_distance)
 
@@ -161,9 +183,10 @@ class Obstacle():
             elapsed_time = rospy.Time.now() - self.start_time
             if elapsed_time.to_sec() >= 60:
                 rospy.loginfo("One minutes have passed. Stopping the robot.")
-                twist.linear.x = 0.0
-                twist.angular.z = 0.0
-                self._cmd_pub.publish(twist)
+                updateVelocity(0.0, 0.0)
+                #twist.linear.x = 0.0
+                #twist.angular.z = 0.0
+                #self._cmd_pub.publish(twist)
                 break
 
 def main():
