@@ -24,7 +24,7 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 
 LINEAR_VEL = 0.05
-STOP_DISTANCE = 0.1
+STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
 
@@ -104,6 +104,7 @@ class Obstacle():
                     rightdistance = min(lidar_distances)
 
                     if rightdistance < startdistance:
+                     # Determine direction to turn
                         # Turn left
                         twist.linear.x = 0.0
                         twist.angular.z = 0.75
