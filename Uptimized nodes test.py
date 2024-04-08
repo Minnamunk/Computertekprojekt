@@ -87,7 +87,7 @@ class Obstacle():
             self._cmd_pub.publish(twist)
         
         def direction():
-            lidar_distances = self.get_scan
+            lidar_distances = self.get_scan()
             left = [x for x in lidar_distances[:45] if x != 10]
             right = [x for x in lidar_distances[45:] if x != 10]
             if (sum(left)/len(left)<sum(right)/len(right)):
