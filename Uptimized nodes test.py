@@ -28,6 +28,7 @@ ANGULAR_VEL = 1
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
+EMERGENCY_STOP_DISTANCE = 0.1 + LIDAR_ERROR
 
 class Obstacle():
 
@@ -102,7 +103,7 @@ class Obstacle():
             min_distance = min(lidar_distances)
 
             rospy.loginfo('Minimum distance to obstacle: %f', min_distance)
-            if min_distance < SAFE_STOP_DISTANCE:
+            if min_distance < EMERGENCY_STOP_DISTANCE:
                 if turtlebot_moving:
                     updateVelocity(0.0, 0.0)
                     # twist.linear.x = 0.0  Used fuction instead
@@ -184,6 +185,10 @@ class Obstacle():
                        # turtlebot_moving = True
                         #rospy.loginfo('Turning counter clockwise')
                         #time.sleep(1)
+            elif min_distance < SAFE_STOP_DISTANCE:
+                updateVelocity(0.8, (0.5*direction()))
+                time.sleep(1)
+
             else:
                 updateVelocity(1, 0.0)
                 #twist.linear.x = LINEAR_VEL
