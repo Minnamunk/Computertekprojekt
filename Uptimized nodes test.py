@@ -124,7 +124,7 @@ class Obstacle():
                     startdistance = min(lidar_distances)
 
                     # Determine direction to turn based on lidar data
-                    updateVelocity(0.5, (0.1*direction()))
+                    updateVelocity(1.0, (0.1*direction()))
 
                     # # Turn right
                     # updateVelocity(0.0, -0.1)
