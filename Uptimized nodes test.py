@@ -88,8 +88,8 @@ class Obstacle():
         
         def direction():
             lidar_distances = self.get_scan()
-            left = [x for x in lidar_distances[:45] if x != 10]
-            right = [x for x in lidar_distances[45:] if x != 10]
+            right = [x for x in lidar_distances[:45] if x != 10]
+            left = [x for x in lidar_distances[45:] if x != 10]
             if (sum(left)/len(left)<sum(right)/len(right)):
                 rospy.loginfo('turning right')
                 return -1   # turn right
@@ -124,7 +124,7 @@ class Obstacle():
                     startdistance = min(lidar_distances)
 
                     # Determine direction to turn based on lidar data
-                    updateVelocity(1.0, (0.1*direction()))
+                    updateVelocity(0.8, (0.5*direction()))
 
                     # # Turn right
                     # updateVelocity(0.0, -0.1)
