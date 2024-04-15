@@ -91,6 +91,7 @@ class Obstacle():
             speed_updates+=1
             speed_accumulation=speed_accumulation + twist.linear.x
             self._cmd_pub.publish(twist)
+            return speed_updates, speed_accumulation
         
         def direction():
             lidar_distances = self.get_scan()
@@ -110,33 +111,33 @@ class Obstacle():
             rospy.loginfo('Minimum distance to obstacle: %f', min_distance)
             if min_distance < EMERGENCY_STOP_DISTANCE:
                 if turtlebot_moving:
-                    updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
+                    speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
                     turtlebot_moving = False
                     rospy.loginfo('Stop!')
                     time.sleep(1)
 
                     #back up
-                    updateVelocity(-1.0, 0.0, speed_updates, speed_accumulation)
+                    speed_updates, speed_accumulation = updateVelocity(-1.0, 0.0, speed_updates, speed_accumulation)
                     turtlebot_moving = True
                     time.sleep(1)
                     turtlebot_moving = False
                     lidar_distances = self.get_scan()
 
                     # Determine direction to turn based on lidar data
-                    updateVelocity(0.8, (0.5*direction()), speed_updates, speed_accumulation)
+                    speed_updates, speed_accumulation = updateVelocity(0.8, (0.5*direction()), speed_updates, speed_accumulation)
 
                     time.sleep(1)
-                    updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
+                    speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
 
                     turtlebot_moving = True
                     time.sleep(1)
 
             elif min_distance < SAFE_STOP_DISTANCE:
-                updateVelocity(0.8, (0.5*direction()), speed_updates, speed_accumulation)
+                speed_updates, speed_accumulation = updateVelocity(0.8, (0.5*direction()), speed_updates, speed_accumulation)
                 time.sleep(1)
 
             else:
-                updateVelocity(1, 0.0, speed_updates, speed_accumulation)
+                speed_updates, speed_accumulation = updateVelocity(1, 0.0, speed_updates, speed_accumulation)
                 turtlebot_moving = True
                 rospy.loginfo('Distance of the obstacle : %f', min_distance)
 
@@ -144,7 +145,7 @@ class Obstacle():
             elapsed_time = rospy.Time.now() - self.start_time
             if elapsed_time.to_sec() >= 120:                                    # Changed to 120 sec
                 rospy.loginfo("Two minutes have passed. Stopping the robot.")   # Changed to 2 minuttes
-                updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
+                speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
                 average_linear_speed = speed_accumulation/speed_updates
                 rospy.loginfo('The average speed this round was: %f', average_linear_speed)
                 break
