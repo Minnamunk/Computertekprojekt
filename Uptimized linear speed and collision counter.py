@@ -23,7 +23,7 @@ import time
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 
-LINEAR_VEL = 0.05
+LINEAR_VEL = 0.1
 ANGULAR_VEL = 1
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
@@ -77,7 +77,7 @@ class Obstacle():
                 scan_filter[i] = 10
             elif scan_filter[i] == 0:
                 scan_filter[i] = 10
-                
+
         return scan_filter
 
     def obstacle(self):
