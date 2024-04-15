@@ -27,8 +27,8 @@ LINEAR_VEL = 0.05
 ANGULAR_VEL = 1
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
-SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
 EMERGENCY_STOP_DISTANCE = 0.1 + LIDAR_ERROR
+SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
 
 class Obstacle():
 
@@ -73,7 +73,9 @@ class Obstacle():
             if scan_filter[i] == float('Inf'):
                 scan_filter[i] = 3.5
             elif math.isnan(scan_filter[i]):
-                scan_filter[i] = 0
+                scan_filter[i] = 10
+            elif scan_filter[i] == 0:
+                scan_filter[i] = 10
 
         return scan_filter
 
@@ -86,7 +88,7 @@ class Obstacle():
             twist.linear.x = LINEAR_VEL*linear
             twist.angular.z = ANGULAR_VEL*angular
             self._cmd_pub.publish(twist)
-        
+
         def direction():
             lidar_distances = self.get_scan()
             right = [x for x in lidar_distances[:45] if x != 10]
@@ -101,7 +103,7 @@ class Obstacle():
         while not rospy.is_shutdown():
             lidar_distances = self.get_scan()
             min_distance = min(lidar_distances)
-
+            #rospy.loginfo('Get scan returns %f', self.get_scan())
             rospy.loginfo('Minimum distance to obstacle: %f', min_distance)
             if min_distance < EMERGENCY_STOP_DISTANCE:
                 if turtlebot_moving:
@@ -125,7 +127,7 @@ class Obstacle():
                     startdistance = min(lidar_distances)
 
                     # Determine direction to turn based on lidar data
-                    updateVelocity(0.8, (0.5*direction()))
+                    updateVelocity(0.8, (0.75*direction()))
 
                     # # Turn right
                     # updateVelocity(0.0, -0.1)
@@ -186,7 +188,7 @@ class Obstacle():
                         #rospy.loginfo('Turning counter clockwise')
                         #time.sleep(1)
             elif min_distance < SAFE_STOP_DISTANCE:
-                updateVelocity(0.8, (0.5*direction()))
+                updateVelocity(0.8, (0.75*direction()))
                 time.sleep(1)
 
             else:
