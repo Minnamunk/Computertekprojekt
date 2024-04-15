@@ -89,6 +89,8 @@ class Obstacle():
             twist = Twist()
             twist.linear.x = LINEAR_VEL*linear
             twist.angular.z = ANGULAR_VEL*angular
+            speed_updates+=1
+            speed_accumulation=speed_accumulation + twist.linear.x
             self._cmd_pub.publish(twist)
         
         def direction():
@@ -145,10 +147,8 @@ class Obstacle():
                 rospy.loginfo("Two minutes have passed. Stopping the robot.")   # Changed to 2 minuttes
                 updateVelocity(0.0, 0.0)
                 average_linear_speed = speed_accumulation/speed_updates
-                rospy.loginfo(average_linear_speed)
+                rospy.loginfo('The average speed this round was: %f', average_linear_speed)
                 break
-
-            turtlebot3_drive.controlLoop(speed_updates, speed_accumulation)
 
 
 def main():
