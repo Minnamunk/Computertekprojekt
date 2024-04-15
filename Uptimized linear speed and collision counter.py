@@ -111,7 +111,7 @@ class Obstacle():
             lidar_distances = self.get_scan()
             right = [x for x in lidar_distances[:10] if x != 10]
             left = [x for x in lidar_distances[10:] if x != 10]
-            if (sum(left)/len(left)+sum(right)/len(right)<3*LIDAR_ERROR):
+            if (len(left)!=0 and len(right)!=0 and sum(left)/len(left)+sum(right)/len(right)<3*LIDAR_ERROR):
                 updateVelocity(0.0, 1.0, 0, 0)
                 rospy.loginfo('UTURN!')
                 time.sleep(1)
