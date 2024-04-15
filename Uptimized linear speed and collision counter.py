@@ -84,7 +84,8 @@ class Obstacle():
         turtlebot_moving = True
         speed_updates = 0
         speed_accumulation = 0
-        average_linear_speed = 0    
+        average_linear_speed = 0
+        collision_counter = 0    
 
         def updateVelocity(linear, angular, speed_updates, speed_accumulation):
             twist = Twist()
@@ -111,11 +112,12 @@ class Obstacle():
             min_distance = min(lidar_distances)
 
             rospy.loginfo('Minimum distance to obstacle: %f', min_distance)
-            if min_distance < EMERGENCY_STOP_DISTANCE:
+            if min_distance <= LIDAR_ERROR:
                 if turtlebot_moving:
                     speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
                     turtlebot_moving = False
-                    rospy.loginfo('Stop!')
+                    rospy.loginfo('Collision detected! Stop!')
+                    collision_counter+=1
                     time.sleep(1)
 
                     #back up
@@ -133,6 +135,10 @@ class Obstacle():
 
                     turtlebot_moving = True
                     time.sleep(1)
+
+            elif min_distance < EMERGENCY_STOP_DISTANCE:
+                speed_updates, speed_accumulation = updateVelocity(0.5, (0.75*direction()), speed_updates, speed_accumulation)
+                time.sleep(1)
 
             elif min_distance < SAFE_STOP_DISTANCE:
                 speed_updates, speed_accumulation = updateVelocity(0.8, (0.5*direction()), speed_updates, speed_accumulation)
