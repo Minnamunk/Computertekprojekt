@@ -79,7 +79,6 @@ class Obstacle():
         return scan_filter
 
     def obstacle(self):
-        twist = Twist()
         turtlebot_moving = True
         speed_updates = 0
         speed_accumulation = 0
