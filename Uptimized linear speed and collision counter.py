@@ -25,10 +25,10 @@ from geometry_msgs.msg import Twist
 
 LINEAR_VEL = 0.1
 ANGULAR_VEL = 1
-STOP_DISTANCE = 0.2
+STOP_DISTANCE = 0.25
 LIDAR_ERROR = 0.05
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
-EMERGENCY_STOP_DISTANCE = 0.1 + LIDAR_ERROR
+EMERGENCY_STOP_DISTANCE = 0.15 + LIDAR_ERROR
 
 class Obstacle():
 
@@ -112,7 +112,7 @@ class Obstacle():
             min_distance = min(lidar_distances)
 
             rospy.loginfo('Minimum distance to obstacle: %f', min_distance)
-            if min_distance <= LIDAR_ERROR:
+            if min_distance <= 3*LIDAR_ERROR:
                 if turtlebot_moving:
                     speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
                     turtlebot_moving = False
