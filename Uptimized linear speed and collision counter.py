@@ -112,9 +112,9 @@ class Obstacle():
             right = [x for x in lidar_distances[:10] if x != 10]
             left = [x for x in lidar_distances[10:] if x != 10]
             if (len(left)!=0 and len(right)!=0 and sum(left)/len(left)+sum(right)/len(right)<3*LIDAR_ERROR):
-                updateVelocity(0.0, 1.0, 0, 0)
+                updateVelocity(0.0, 1.2, 0, 0)
                 rospy.loginfo('UTURN!')
-                time.sleep(1)
+                time.sleep(3)
 
         while not rospy.is_shutdown():
             lidar_distances = self.get_scan()
@@ -134,7 +134,7 @@ class Obstacle():
                     #back up
                     speed_updates, speed_accumulation = updateVelocity(-1.0, 0.0, speed_updates, speed_accumulation)
                     turtlebot_moving = True
-                    time.sleep(1)
+                    time.sleep(0.3)
                     turtlebot_moving = False
                     lidar_distances = self.get_scan()
 
@@ -152,7 +152,7 @@ class Obstacle():
                 time.sleep(1)
 
             elif min_distance < SAFE_STOP_DISTANCE:
-                speed_updates, speed_accumulation = updateVelocity(0.8, (0.5*direction()), speed_updates, speed_accumulation)
+                speed_updates, speed_accumulation = updateVelocity(0.8, (0.4*direction()), speed_updates, speed_accumulation)
                 time.sleep(1)
 
             else:
