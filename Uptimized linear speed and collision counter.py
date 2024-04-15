@@ -74,8 +74,10 @@ class Obstacle():
             if scan_filter[i] == float('Inf'):
                 scan_filter[i] = 3.5
             elif math.isnan(scan_filter[i]):
-                scan_filter[i] = 0
-
+                scan_filter[i] = 10
+            elif scan_filter[i] == 0:
+                scan_filter[i] = 10
+                
         return scan_filter
 
     def obstacle(self):
