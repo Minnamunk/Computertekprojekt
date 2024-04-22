@@ -23,11 +23,11 @@ def getAndUpdateColour():
         # Output data to the console RGB values
         # Uncomment the line below when you have read the red, green and blue values
         print("RGB(%d %d %d)" % (red, green, blue))
-        if(300<red<400 and 500<green<700 and 250<blue<350):
+        if(20<red<100 and 40<green<175 and 20<blue<70):
                 print("green")
-        elif(550<red<700 and 450<green<550 and 150<blue<200):
+        elif(100<red<400 and 40<green<250 and 10<blue<75):
                 print("red")
-        elif(150<red<300 and 350<green<500 and 200<blue<350):
+        elif(40<red<100 and 70<green<210 and 80<blue<150):
                 print("blue")
 
 getAndUpdateColour()
