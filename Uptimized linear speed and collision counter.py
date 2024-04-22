@@ -17,11 +17,16 @@
 
 # Authors: Gilbert #
 
+import sys
+sys.path.append('/home/ubuntu/catkin_ws2/src/turtlebot3/turtlebot3_example/src/turtlebot3_example/')
+
+
 import rospy
 import math
 import time
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
+from readFromLightSensor import *
 
 LINEAR_VEL = 0.1
 ANGULAR_VEL = 1
@@ -85,7 +90,7 @@ class Obstacle():
         speed_updates = 0
         speed_accumulation = 0
         average_linear_speed = 0
-        collision_counter = 0    
+        collision_counter = 0
 
         def updateVelocity(linear, angular, speed_updates, speed_accumulation):
             twist = Twist()
@@ -95,70 +100,84 @@ class Obstacle():
             speed_accumulation=speed_accumulation + twist.linear.x
             self._cmd_pub.publish(twist)
             return speed_updates, speed_accumulation
-        
+
         def direction():
             lidar_distances = self.get_scan()
             right = [x for x in lidar_distances[:45] if x != 10]
             left = [x for x in lidar_distances[45:] if x != 10]
-            if (sum(left)/len(left)<sum(right)/len(right)):
+            if (len(left)!=0 and len(right)!=0 and sum(left)/len(left)<sum(right)/len(right)):
                 rospy.loginfo('turning right')
                 return -1   # turn right
             else:
                 rospy.loginfo('turning left')
                 return 1    # turn left
-            
         def uturn():
             lidar_distances = self.get_scan()
-            right = [x for x in lidar_distances[:10] if x != 10]
-            left = [x for x in lidar_distances[10:] if x != 10]
-            if (len(left)!=0 and len(right)!=0 and sum(left)/len(left)+sum(right)/len(right)<3*LIDAR_ERROR):
+            right = [x for x in lidar_distances[:45] if x != 10]
+            left = [x for x in lidar_distances[45:] if x != 10]
+            if (len(left)!=0 and len(right)!=0 and (sum(left)/len(left)+sum(right)/len(right))/2 < 4*LIDAR_ERROR):
                 updateVelocity(0.0, 1.2, 0, 0)
-                rospy.loginfo('UTURN!')
+                rospy.loginfo("UTURN!")
                 time.sleep(3)
 
+        col = 0
+        current_colour = "null"
+        previous_colour = "null"
+        victim = 0
         while not rospy.is_shutdown():
+            previous_colour = current_colour
+            current_colour = getAndUpdateColour()
+            if (current_colour != previous_colour):
+                if(current_colour == "red"):
+                    victim += 1
+            if (col>2):
+                updateVelocity(0.0, 1.2, 0, 0)
+                rospy.loginfo("Too many collisions, making uturn")
+                time.sleep(3)
+
             lidar_distances = self.get_scan()
             min_distance = min(lidar_distances)
 
-            rospy.loginfo('Minimum distance to obstacle: %f', min_distance)
+            # rospy.loginfo('Minimum distance to obstacle: %f', min_distance)
             uturn()
 
             if min_distance <= 3*LIDAR_ERROR:
                 if turtlebot_moving:
                     speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
                     turtlebot_moving = False
-                    rospy.loginfo('Collision detected! Stop!')
+                    rospy.loginfo('Collision! STOP!')
                     collision_counter+=1
-                    time.sleep(1)
+                    col+=1
 
                     #back up
                     speed_updates, speed_accumulation = updateVelocity(-1.0, 0.0, speed_updates, speed_accumulation)
                     turtlebot_moving = True
                     time.sleep(0.3)
-                    turtlebot_moving = False
                     lidar_distances = self.get_scan()
 
                     # Determine direction to turn based on lidar data
                     speed_updates, speed_accumulation = updateVelocity(0.8, (0.5*direction()), speed_updates, speed_accumulation)
 
-                    time.sleep(1)
-                    speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
+                    #time.sleep(1)
+                    #speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
 
                     turtlebot_moving = True
                     time.sleep(1)
+            elif 2.5*LIDAR_ERROR < min_distance < EMERGENCY_STOP_DISTANCE:
 
-            elif 3*LIDAR_ERROR < min_distance < EMERGENCY_STOP_DISTANCE:
                 speed_updates, speed_accumulation = updateVelocity(0.5, (0.75*direction()), speed_updates, speed_accumulation)
                 time.sleep(1)
 
             elif min_distance < SAFE_STOP_DISTANCE:
-                speed_updates, speed_accumulation = updateVelocity(0.8, (0.4*direction()), speed_updates, speed_accumulation)
-                time.sleep(1)
+                speed_updates, speed_accumulation = updateVelocity(0.8, (0.5*direction()), speed_updates, speed_accumulation)
+                time.sleep(0.75)
+                col = 0
 
             else:
                 speed_updates, speed_accumulation = updateVelocity(1, 0.0, speed_updates, speed_accumulation)
                 turtlebot_moving = True
-                rospy.loginfo('Distance of the obstacle : %f', min_distance)
+                # rospy.loginfo('Distance of the obstacle : %f', min_distance)
+                col = 0
 
             # Check if two minutes have elapsed
             elapsed_time = rospy.Time.now() - self.start_time
@@ -167,6 +186,8 @@ class Obstacle():
                 speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
                 average_linear_speed = speed_accumulation/speed_updates
                 rospy.loginfo('The average speed this round was: %f', average_linear_speed)
+                rospy.loginfo("Total number of collisions was: %f", collision_counter)
+                rospy.loginfo("The total number of victims detected: %f", victim)
                 break
 
 
