@@ -66,7 +66,7 @@ class Obstacle():
         samples = len(scan.ranges)  # The number of samples is defined in
                                     # turtlebot3_<model>.gazebo.xacro file,
                                     # the default is 360.
-        samples_view = 90            # 1 <= samples_view <= samples
+        samples_view = 91            # 1 <= samples_view <= samples
 
         if samples_view > samples:
             samples_view = samples
@@ -110,14 +110,16 @@ class Obstacle():
 
         def direction():
             lidar_distances = self.get_scan()
-            right = [x for x in lidar_distances[:45] if x != 10]
-            left = [x for x in lidar_distances[45:] if x != 10]
+            right = [x for x in lidar_distances[:36] if x != 10]
+            left = [x for x in lidar_distances[36:] if x != 10]
+            
             if (len(left)!=0 and len(right)!=0 and sum(left)/len(left)<sum(right)/len(right)):
                 rospy.loginfo('turning right')
                 return -1   # turn right
             else:
                 rospy.loginfo('turning left')
                 return 1    # turn left
+                
         def uturn():
             lidar_distances = self.get_scan()
             uturn_counter = 0
@@ -135,6 +137,8 @@ class Obstacle():
         previous_colour = "null"
         victim = 0
         uturn_counter = 0
+
+        
         while not rospy.is_shutdown():
             previous_colour = current_colour
             current_colour = getAndUpdateColour()
@@ -146,6 +150,7 @@ class Obstacle():
                         time.sleep(0.25)
                         GPIO.output(LED, GPIO.LOW)
                         time.sleep(0.25)
+                        
             if (col>2 and uturn_counter !=1):
                 updateVelocity(0.0, 1.2, 0, 0)
                 rospy.loginfo("Too many collisions, making uturn")
@@ -154,11 +159,13 @@ class Obstacle():
 
             lidar_distances = self.get_scan()
             min_distance = min(lidar_distances)
+            center = [x for x in lidar_distances[36:54] if x != 10]
+            center_avg = sum(center)/len(center)
 
             # rospy.loginfo('Minimum distance to obstacle: %f', min_distance)
             uturn()
 
-            if min_distance <= 4*LIDAR_ERROR:
+            if min_distance <= 2.5*LIDAR_ERROR or center_avg <= 4*LIDAR_ERROR:
                 if turtlebot_moving:
                     #speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
                     #turtlebot_moving = False
@@ -179,20 +186,18 @@ class Obstacle():
                     # time.sleep(0.3)
                     # lidar_distances = self.get_scan()
 
-
-
                     #time.sleep(1)
                     #speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
 
                     #turtlebot_moving = True
                     time.sleep(0.5)
-            elif 4*LIDAR_ERROR < min_distance < EMERGENCY_STOP_DISTANCE:
+            elif 2.5*LIDAR_ERROR < min_distance < EMERGENCY_STOP_DISTANCE or 4*LIDAR_ERROR < center_avg < SAFE_STOP_DISTANCE:
 
                 speed_updates, speed_accumulation = updateVelocity(0.7, (0.5*direction()), speed_updates, speed_accumulation)
                 time.sleep(0.75)
                 rospy.loginfo('Sharp turn')
 
-            elif min_distance < SAFE_STOP_DISTANCE:
+            elif EMERGENCY_STOP_DISTANCE < min_distance < SAFE_STOP_DISTANCE:
                 speed_updates, speed_accumulation = updateVelocity(0.8, (0.5*direction()), speed_updates, speed_accumulation)
                 time.sleep(0.5)
                 col = 0
