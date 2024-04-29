@@ -26,7 +26,7 @@ def getAndUpdateColour():
         print("RGB(%d %d %d)" % (red, green, blue))
         if(20<red<150 and 140<green<215 and 20<blue<90):
                 ground="floor"
-        elif(200<red<300 and 100<green<250 and 20<blue<95):
+        elif(150<red<300 and 100<green<250 and 50<blue<150):
                 ground="red"
         elif(300<red<450 and 400<green<500 and 150<blue<210):
                 ground="white"
