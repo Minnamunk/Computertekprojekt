@@ -38,7 +38,7 @@ ANGULAR_VEL = 1
 STOP_DISTANCE = 0.25
 LIDAR_ERROR = 0.05
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
-EMERGENCY_STOP_DISTANCE = 0.125 + LIDAR_ERROR
+EMERGENCY_STOP_DISTANCE = 0.15 + LIDAR_ERROR
 
 GPIO.setup(LED, GPIO.OUT)
 
@@ -146,6 +146,7 @@ class Obstacle():
             if (current_colour != previous_colour):
                 if(current_colour == "red"):
                     victim += 1
+
                     for i in range(2):
                         GPIO.output(LED, GPIO.HIGH)
                         time.sleep(0.25)
@@ -169,7 +170,7 @@ class Obstacle():
             # rospy.loginfo('Minimum distance to obstacle: %f', min_distance)
             uturn()
 
-            if min_distance <= 2.5*LIDAR_ERROR or center_avg <= 4*LIDAR_ERROR:
+            if min_distance <= 2.5*LIDAR_ERROR or center_avg <= 4.5*LIDAR_ERROR:
                 if turtlebot_moving:
                     #speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
                     #turtlebot_moving = False
@@ -195,9 +196,9 @@ class Obstacle():
 
                     #turtlebot_moving = True
                     time.sleep(0.1)
-            elif 2.5*LIDAR_ERROR < min_distance < EMERGENCY_STOP_DISTANCE or 4*LIDAR_ERROR < center_avg < SAFE_STOP_DISTANCE:
+            elif 2.5*LIDAR_ERROR < min_distance < EMERGENCY_STOP_DISTANCE or 4.5*LIDAR_ERROR < center_avg < SAFE_STOP_DISTANCE:
 
-                speed_updates, speed_accumulation = updateVelocity(0.7, (0.7*direction()), speed_updates, speed_accumulation)
+                speed_updates, speed_accumulation = updateVelocity(0.7, (0.8*direction()), speed_updates, speed_accumulation)
                 time.sleep(0.1)
                 rospy.loginfo('Sharp turn')
 
