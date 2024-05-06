@@ -33,12 +33,12 @@ import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
 
 LED = 25
-LINEAR_VEL = 0.1
+LINEAR_VEL = 0.15
 ANGULAR_VEL = 1
 STOP_DISTANCE = 0.25
 LIDAR_ERROR = 0.05
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
-EMERGENCY_STOP_DISTANCE = 0.15 + LIDAR_ERROR
+EMERGENCY_STOP_DISTANCE = 0.125 + LIDAR_ERROR
 
 GPIO.setup(LED, GPIO.OUT)
 
@@ -112,14 +112,14 @@ class Obstacle():
             lidar_distances = self.get_scan()
             right = [x for x in lidar_distances[:36] if x != 10]
             left = [x for x in lidar_distances[36:] if x != 10]
-            
+
             if (len(left)!=0 and len(right)!=0 and sum(left)/len(left)<sum(right)/len(right)):
                 rospy.loginfo('turning right')
                 return -1   # turn right
             else:
                 rospy.loginfo('turning left')
                 return 1    # turn left
-                
+
         def uturn():
             lidar_distances = self.get_scan()
             uturn_counter = 0
@@ -127,9 +127,9 @@ class Obstacle():
             left = [x for x in lidar_distances[45:] if x != 10]
             if (len(left)!=0 and len(right)!=0 and (sum(left)/len(left)+sum(right)/len(right))/2 < 4*LIDAR_ERROR):
                 uturn_counter = 1
-                updateVelocity(0.0, 1.2, 0, 0)
+                updateVelocity(0.0, 1.5, 0, 0)
                 rospy.loginfo("UTURN!")
-                time.sleep(2)
+                time.sleep(1.5)
 
 
         col = 0
@@ -137,8 +137,9 @@ class Obstacle():
         previous_colour = "null"
         victim = 0
         uturn_counter = 0
+        soft_turns = 0
 
-        
+
         while not rospy.is_shutdown():
             previous_colour = current_colour
             current_colour = getAndUpdateColour()
@@ -150,17 +151,20 @@ class Obstacle():
                         time.sleep(0.25)
                         GPIO.output(LED, GPIO.LOW)
                         time.sleep(0.25)
-                        
+
             if (col>2 and uturn_counter !=1):
-                updateVelocity(0.0, 1.2, 0, 0)
+                updateVelocity(0.0, 1.5, 0, 0)
                 rospy.loginfo("Too many collisions, making uturn")
-                time.sleep(2)
+                time.sleep(1.5)
                 uturn_counter = 1
+                collision_counter -= 2
 
             lidar_distances = self.get_scan()
             min_distance = min(lidar_distances)
             center = [x for x in lidar_distances[36:54] if x != 10]
-            center_avg = sum(center)/len(center)
+            if len(center) !=0:
+                center_avg = sum(center)/len(center)
+            rospy.loginfo(center_avg)
 
             # rospy.loginfo('Minimum distance to obstacle: %f', min_distance)
             uturn()
@@ -190,18 +194,19 @@ class Obstacle():
                     #speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
 
                     #turtlebot_moving = True
-                    time.sleep(0.5)
+                    time.sleep(0.1)
             elif 2.5*LIDAR_ERROR < min_distance < EMERGENCY_STOP_DISTANCE or 4*LIDAR_ERROR < center_avg < SAFE_STOP_DISTANCE:
 
-                speed_updates, speed_accumulation = updateVelocity(0.7, (0.5*direction()), speed_updates, speed_accumulation)
-                time.sleep(0.75)
+                speed_updates, speed_accumulation = updateVelocity(0.7, (0.7*direction()), speed_updates, speed_accumulation)
+                time.sleep(0.1)
                 rospy.loginfo('Sharp turn')
 
-            elif EMERGENCY_STOP_DISTANCE < min_distance < SAFE_STOP_DISTANCE:
+            elif EMERGENCY_STOP_DISTANCE < min_distance < SAFE_STOP_DISTANCE or SAFE_STOP_DISTANCE < center_avg < 0.5 :
                 speed_updates, speed_accumulation = updateVelocity(0.8, (0.5*direction()), speed_updates, speed_accumulation)
-                time.sleep(0.5)
+                time.sleep(0.1)
                 col = 0
                 rospy.loginfo('soft turn')
+                soft_turns += 1
 
             else:
                 speed_updates, speed_accumulation = updateVelocity(1, 0.0, speed_updates, speed_accumulation)
@@ -209,6 +214,7 @@ class Obstacle():
                 # rospy.loginfo('Distance of the obstacle : %f', min_distance)
                 col = 0
                 uturn_counter = 0
+                soft_turns = 0
 
             # Check if two minutes have elapsed
             elapsed_time = rospy.Time.now() - self.start_time
