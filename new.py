@@ -158,6 +158,11 @@ class Obstacle():
 
             # rospy.loginfo('Minimum distance to obstacle: %f', min_distance)
             uturn()
+            lidar_distances = self.get_scan()
+            min_distance = min(lidar_distances)
+            center = [x for x in lidar_distances[36:54] if x != 10]
+            if len(center) !=0:
+                center_avg = sum(center)/len(center)
 
             if min_distance <= 2.5*LIDAR_ERROR or center_avg <= 4.5*LIDAR_ERROR:
                 if turtlebot_moving:
