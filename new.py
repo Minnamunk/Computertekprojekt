@@ -44,16 +44,6 @@ GPIO.setup(LED, GPIO.OUT)
 
 class Obstacle():
 
-
-    # def laserScanMsgCallBack(msg):
-    #     scan_angle = [0, -45, 45]
-    #     for num in range(3):
-    #         if math.isinf(msg.ranges[scan_angle[num]]):
-    #             get_scan[num] = msg.range_max
-    #         else:
-    #             scan_data_[num] = msg.ranges[scan_angle[num]]
-
-
     def __init__(self):
         self._cmd_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
         self.start_time = rospy.Time.now()
@@ -131,13 +121,11 @@ class Obstacle():
                 rospy.loginfo("UTURN!")
                 time.sleep(2)
 
-
         col = 0
         current_colour = "null"
         previous_colour = "null"
         victim = 0
         uturn_counter = 0
-
         
         while not rospy.is_shutdown():
             previous_colour = current_colour
@@ -167,8 +155,6 @@ class Obstacle():
 
             if min_distance <= 2.5*LIDAR_ERROR or center_avg <= 4*LIDAR_ERROR:
                 if turtlebot_moving:
-                    #speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
-                    #turtlebot_moving = False
                     # Determine direction to turn based on lidar data
                     speed_updates, speed_accumulation = updateVelocity(0.5, (0.9*direction()), speed_updates, speed_accumulation)
 
@@ -180,16 +166,6 @@ class Obstacle():
                         time.sleep(0.5)
                         GPIO.output(LED, GPIO.LOW)
 
-                    #back up
-                    # speed_updates, speed_accumulation = updateVelocity(-1.0, 0.0, speed_updates, speed_accumulation)
-                    # turtlebot_moving = True
-                    # time.sleep(0.3)
-                    # lidar_distances = self.get_scan()
-
-                    #time.sleep(1)
-                    #speed_updates, speed_accumulation = updateVelocity(0.0, 0.0, speed_updates, speed_accumulation)
-
-                    #turtlebot_moving = True
                     time.sleep(0.5)
             elif 2.5*LIDAR_ERROR < min_distance < EMERGENCY_STOP_DISTANCE or 4*LIDAR_ERROR < center_avg < SAFE_STOP_DISTANCE:
 
