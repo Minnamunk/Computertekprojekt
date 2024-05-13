@@ -138,6 +138,7 @@ class Obstacle():
         victim = 0
         uturn_counter = 0
         soft_turns = 0
+        center_avg = 0
 
 
         while not rospy.is_shutdown():
