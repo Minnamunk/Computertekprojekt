@@ -112,11 +112,9 @@ class Obstacle():
 
         def uturn():
             lidar_distances = self.get_scan()
-            uturn_counter = 0
             right = [x for x in lidar_distances[:45] if x != 10]
             left = [x for x in lidar_distances[45:] if x != 10]
             if (len(left)!=0 and len(right)!=0 and (sum(left)/len(left)+sum(right)/len(right))/2 < 4*LIDAR_ERROR):
-                uturn_counter = 1
                 updateVelocity(0.0, 1.5, 0, 0)
                 rospy.loginfo("UTURN!")
                 time.sleep(2)
