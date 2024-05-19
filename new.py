@@ -179,7 +179,6 @@ class Obstacle():
 
                     time.sleep(0.1)
             elif 2.5*LIDAR_ERROR < min_distance < EMERGENCY_STOP_DISTANCE or 4.5*LIDAR_ERROR < center_avg < SAFE_STOP_DISTANCE:
-
                 speed_updates, speed_accumulation = updateVelocity(0.7, (0.8*direction()), speed_updates, speed_accumulation)
                 time.sleep(0.1)
                 rospy.loginfo('Sharp turn')
